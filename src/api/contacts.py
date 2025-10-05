@@ -1,13 +1,37 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Depends, status
+from typing import List
+from sqlalchemy.ext.asyncio import AsyncSession
+from src.schemas import ContactModel, ContactModelResponse
+from src.database.db import get_db
+from src.services.contacts import ContactService
 
 router = APIRouter(prefix="/contacts", tags=["contacts"])
 
 
-@router.get("/")
-async def get_contacts():
-    return {"test": "test"}
+@router.get("/", response_model=List[ContactModelResponse])
+async def get_contacts(
+    skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_db)
+):
+    contact_service = ContactService(db)
+    return await contact_service.get_contacts(skip, limit)
 
 
-@router.get("/{contact_id}")
-async def get_contact(contact_id: int):
-    return {"contact_id": contact_id}
+@router.get("/{contact_id}", response_model=ContactModelResponse)
+async def get_contact(contact_id: int, db: AsyncSession = Depends(get_db)):
+    contact_service = ContactService(db)
+    contact = await contact_service.get_contact(contact_id)
+
+    if contact is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found"
+        )
+
+    return contact
+
+
+@router.post(
+    "/", response_model=ContactModelResponse, status_code=status.HTTP_201_CREATED
+)
+async def create_contact(body: ContactModel, db: AsyncSession = Depends(get_db)):
+    contact_service = ContactService(db)
+    return await contact_service.create_contact(body)
