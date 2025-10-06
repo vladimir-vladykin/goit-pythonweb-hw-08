@@ -25,3 +25,22 @@ class ContactRepository:
         await self.db.commit()
         await self.db.refresh(contact)
         return await self.get_contact_by_id(contact.id)
+
+    async def delete_contact(self, contact_id: int) -> Contact | None:
+        contact = await self.get_contact_by_id(contact_id)
+        if contact:
+            await self.db.delete(contact)
+            await self.db.commit()
+        return contact
+
+    async def update_contact(
+        self, contact_id: int, body: ContactModel
+    ) -> Contact | None:
+        contact = await self.get_contact_by_id(contact_id)
+        if contact:
+            for key, value in body.model_dump(exclude_unset=True).items():
+                setattr(contact, key, value)
+
+            await self.db.commit()
+            await self.db.refresh(contact)
+        return contact

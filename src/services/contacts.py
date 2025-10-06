@@ -15,3 +15,9 @@ class ContactService:
 
     async def create_contact(self, body: ContactModel):
         return await self.contact_repository.create_contact(body)
+
+    async def delete_contact(self, contact_id: int):
+        return await self.contact_repository.delete_contact(contact_id)
+
+    async def update_contact(self, contact_id: int, body: ContactModel):
+        return await self.contact_repository.update_contact(contact_id, body)
