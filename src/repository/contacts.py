@@ -11,13 +11,13 @@ class ContactRepository:
 
     async def get_contacts(self, skip: int, limit: int) -> List[Contact]:
         stmt = select(Contact).offset(skip).limit(limit)
-        notes = await self.db.execute(stmt)
-        return notes.scalars().all()
+        contacts = await self.db.execute(stmt)
+        return contacts.scalars().all()
 
     async def get_contact_by_id(self, contact_id: int) -> Contact | None:
         stmt = select(Contact).filter_by(id=contact_id)
-        note = await self.db.execute(stmt)
-        return note.scalar_one_or_none()
+        contact = await self.db.execute(stmt)
+        return contact.scalar_one_or_none()
 
     async def create_contact(self, body: ContactModel) -> Contact:
         contact = Contact(**body.model_dump(exclude_unset=True))
@@ -44,3 +44,21 @@ class ContactRepository:
             await self.db.commit()
             await self.db.refresh(contact)
         return contact
+
+    async def search_contacts(
+        self,
+        first_name: str | None,
+        last_name: str | None,
+        email: str | None,
+        skip: int,
+        limit: int,
+    ):
+        stmt = select(Contact).offset(skip).limit(limit)
+        if first_name:
+            stmt = stmt.filter_by(first_name=first_name)
+        if last_name:
+            stmt = stmt.filter_by(last_name=last_name)
+        if email:
+            stmt = stmt.filter_by(email=email)
+        contacts = await self.db.execute(stmt)
+        return contacts.scalars().all()

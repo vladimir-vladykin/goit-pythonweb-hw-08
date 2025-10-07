@@ -21,3 +21,15 @@ class ContactService:
 
     async def update_contact(self, contact_id: int, body: ContactModel):
         return await self.contact_repository.update_contact(contact_id, body)
+
+    async def search_contacts(
+        self,
+        first_name: str | None,
+        last_name: str | None,
+        email: str | None,
+        skip: int,
+        limit: int,
+    ):
+        return await self.contact_repository.search_contacts(
+            first_name, last_name, email, skip, limit
+        )

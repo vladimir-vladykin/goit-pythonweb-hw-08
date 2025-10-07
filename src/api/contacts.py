@@ -16,6 +16,26 @@ async def get_contacts(
     return await contact_service.get_contacts(skip, limit)
 
 
+@router.get("/search", response_model=List[ContactModelResponse])
+async def search_contacts(
+    first_name: str | None = None,
+    last_name: str | None = None,
+    email: str | None = None,
+    skip: int = 0,
+    limit: int = 100,
+    db: AsyncSession = Depends(get_db),
+):
+    if first_name is None and last_name is None and email is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one search query should be presented",
+        )
+    contact_service = ContactService(db)
+    return await contact_service.search_contacts(
+        first_name, last_name, email, skip, limit
+    )
+
+
 @router.get("/{contact_id}", response_model=ContactModelResponse)
 async def get_contact(contact_id: int, db: AsyncSession = Depends(get_db)):
     contact_service = ContactService(db)
