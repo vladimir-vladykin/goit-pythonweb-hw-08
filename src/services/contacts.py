@@ -33,3 +33,6 @@ class ContactService:
         return await self.contact_repository.search_contacts(
             first_name, last_name, email, skip, limit
         )
+
+    async def get_closest_brithday_contacts(self):
+        return await self.contact_repository.get_closest_brithday_contacts()

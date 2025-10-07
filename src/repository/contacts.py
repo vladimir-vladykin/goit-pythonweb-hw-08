@@ -1,8 +1,9 @@
-from sqlalchemy import select
+from sqlalchemy import select, func, extract
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.models import Contact
 from src.schemas import ContactModel
 from typing import List
+from datetime import date, timedelta
 
 
 class ContactRepository:
@@ -52,7 +53,7 @@ class ContactRepository:
         email: str | None,
         skip: int,
         limit: int,
-    ):
+    ) -> List[Contact]:
         stmt = select(Contact).offset(skip).limit(limit)
         if first_name:
             stmt = stmt.filter_by(first_name=first_name)
@@ -60,5 +61,26 @@ class ContactRepository:
             stmt = stmt.filter_by(last_name=last_name)
         if email:
             stmt = stmt.filter_by(email=email)
+        contacts = await self.db.execute(stmt)
+        return contacts.scalars().all()
+
+    async def get_closest_brithday_contacts(self) -> List[Contact]:
+        today = date.today()
+        week_from_now = today + timedelta(days=7)
+
+        range_start_day = today.day
+        range_start_month = today.month
+
+        range_end_day = week_from_now.day
+        range_end_month = week_from_now.month
+
+        stmt = (
+            select(Contact)
+            .where(extract("day", Contact.date_of_birth) >= range_start_day)
+            .where(extract("month", Contact.date_of_birth) >= range_start_month)
+            .where(extract("day", Contact.date_of_birth) <= range_end_day)
+            .where(extract("month", Contact.date_of_birth) <= range_end_month)
+        )
+
         contacts = await self.db.execute(stmt)
         return contacts.scalars().all()

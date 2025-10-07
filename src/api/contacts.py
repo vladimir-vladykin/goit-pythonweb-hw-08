@@ -36,6 +36,12 @@ async def search_contacts(
     )
 
 
+@router.get("/closest_birthdays", response_model=List[ContactModelResponse])
+async def get_closest_birthdays_contacts(db: AsyncSession = Depends(get_db)):
+    contact_service = ContactService(db)
+    return await contact_service.get_closest_brithday_contacts()
+
+
 @router.get("/{contact_id}", response_model=ContactModelResponse)
 async def get_contact(contact_id: int, db: AsyncSession = Depends(get_db)):
     contact_service = ContactService(db)
